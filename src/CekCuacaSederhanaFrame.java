@@ -7,6 +7,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
@@ -30,7 +32,7 @@ import org.json.JSONObject;
 public class CekCuacaSederhanaFrame extends javax.swing.JFrame {
     
     private static final String API_KEY = "f073205fa948952463a438aa35110bad";
-
+    private Map<String, Integer> cityCountMap = new HashMap<>();
     /**
      * Creates new form CekCuacaSederhanaFrame
      */
@@ -179,11 +181,11 @@ public class CekCuacaSederhanaFrame extends javax.swing.JFrame {
                             .addComponent(jLabel5))
                         .addGap(49, 49, 49)
                         .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton1)
                     .addComponent(jLabel6)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 355, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 515, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -250,9 +252,7 @@ public class CekCuacaSederhanaFrame extends javax.swing.JFrame {
         jLabel5.setText(weatherDescription);
 
         // Tambahkan kota ke ComboBox yang sering dicentang jika belum ada
-        if (!isCityInComboBox(city)) {
-            jComboBox1.addItem(city);
-        }
+        
 
         // Menambahkan Data ke jtable
         addToTable(city, weatherMain, weatherDescription, icon);
@@ -262,9 +262,23 @@ public class CekCuacaSederhanaFrame extends javax.swing.JFrame {
         Logger.getLogger(CekCuacaSederhanaFrame.class.getName()).log(Level.SEVERE, null, ex);
         JOptionPane.showMessageDialog(this, "Error fetching the icon. Please check your internet connection.");
     }
+    
+    if (!city.isEmpty()) {
+        // Ambil nilai hitungan saat ini untuk kota, default 0 jika belum ada
+        int count = cityCountMap.getOrDefault(city, 0) + 1;
+        cityCountMap.put(city, count); // Update hitungan untuk kota tersebut
+
+        if (count == 3) {
+            // Pastikan kota belum ada di JComboBox sebelum menambahkannya
+            if (!isCityInComboBox(city)) {
+                jComboBox1.addItem(city);  // Tambahkan kota ke jComboBox1 sebagai favorit
+            }
+            cityCountMap.put(city, 0);  // Reset hitungan setelah mencapai 3 kali
+        }
 }
 
 }
+    }
 
 // Mengulang melalui item dalam ComboBox dan mengembalikan true jika kota ditemukan
 private boolean isCityInComboBox(String city) {
@@ -296,7 +310,7 @@ private boolean isCityInComboBox(String city) {
                 String description = model.getValueAt(i, 2).toString();
 
                 // Tulis data ke file
-                writer.write(city + "\t" + weather + "\t" + description + "\n");
+                writer.write(city + "\t," + weather + "\t," + description + "\n");
             }
 
             JOptionPane.showMessageDialog(this, "Data saved successfully as text file!");
